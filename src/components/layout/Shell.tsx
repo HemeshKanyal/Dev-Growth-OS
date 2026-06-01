@@ -142,32 +142,38 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab,
 
             {/* Notifications Popover */}
             {showNotifications && (
-              <div className="absolute top-[calc(100%+0.75rem)] right-0 w-80 max-h-[400px] bg-slate-900/95 backdrop-blur-xl border border-slate-800/80 rounded-2xl shadow-2xl overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                <div className="px-4 py-3 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
-                  <h3 className="text-sm font-bold text-slate-200">Notifications</h3>
+              <div className="absolute top-[calc(100%+1rem)] right-0 w-80 max-h-[350px] bg-slate-900 border border-slate-800 rounded-xl shadow-2xl shadow-black/50 overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-slate-800 flex justify-between items-center bg-slate-950/40 shrink-0">
+                  <h3 className="text-sm font-semibold text-slate-200">Notifications</h3>
                   {notifications.length > 0 && (
                     <button 
                       onClick={clearNotifications}
-                      className="text-[10px] text-slate-500 hover:text-red-400 font-mono tracking-wider transition uppercase flex items-center gap-1"
+                      className="text-[10px] bg-slate-800/50 hover:bg-slate-700/50 text-slate-400 hover:text-red-400 px-2 py-1 rounded font-medium transition-colors flex items-center gap-1.5"
                     >
-                      <Trash2 className="h-3 w-3" /> Clear
+                      <Trash2 className="h-3 w-3" /> 
+                      <span>Clear All</span>
                     </button>
                   )}
                 </div>
                 
-                <div className="flex-1 overflow-y-auto">
+                {/* Scrollable List */}
+                <div className="flex-1 overflow-y-auto min-h-0 custom-scrollbar pb-2">
                   {notifications.length === 0 ? (
-                    <div className="px-4 py-8 text-center flex flex-col items-center justify-center">
-                      <div className="h-12 w-12 rounded-full bg-slate-800/50 flex-center mb-2">
+                    <div className="px-4 py-10 text-center flex flex-col items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-slate-800/50 flex-center mb-3">
                         <Bell className="h-5 w-5 text-slate-500" />
                       </div>
-                      <p className="text-sm text-slate-400 font-medium">All caught up!</p>
+                      <p className="text-sm text-slate-300 font-medium">All caught up!</p>
                       <p className="text-xs text-slate-500 mt-1">No new notifications</p>
                     </div>
                   ) : (
                     <div className="flex flex-col">
                       {notifications.map((notif) => (
-                        <div key={notif.id} className="px-4 py-3 border-b border-slate-800/50 hover:bg-slate-800/30 transition flex gap-3 last:border-0">
+                        <div key={notif.id} className="px-4 py-3.5 border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors flex gap-3.5 last:border-0">
+                          
+                          {/* Icon */}
                           <div className="mt-0.5 shrink-0">
                             {notif.type === 'success' ? (
                               <CheckCircle2 className="h-4 w-4 text-emerald-400" />
@@ -177,10 +183,12 @@ export const Shell: React.FC<ShellProps> = ({ children, activeTab, setActiveTab,
                               <Info className="h-4 w-4 text-blue-400" />
                             )}
                           </div>
-                          <div className="flex flex-col gap-0.5 min-w-0">
-                            <span className="text-sm font-semibold text-slate-200 truncate">{notif.title}</span>
-                            <span className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{notif.message}</span>
-                            <span className="text-[9px] text-slate-500 font-mono mt-1">
+                          
+                          {/* Content */}
+                          <div className="flex flex-col min-w-0 flex-1">
+                            <span className="text-[13px] font-medium text-slate-200 mb-0.5">{notif.title}</span>
+                            <span className="text-[12px] text-slate-400 leading-snug">{notif.message}</span>
+                            <span className="text-[10px] text-slate-500 font-mono mt-1.5 font-medium">
                               {new Date(notif.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
