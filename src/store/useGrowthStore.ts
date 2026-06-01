@@ -609,25 +609,19 @@ export const useGrowthStore = create<GrowthStore>()(
           };
         });
 
-        // Async write to Express backend
+        // Async write to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
+          if (session?.user) {
             try {
-              await fetch('http://localhost:5001/api/topics', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                  id,
-                  date_str: dateStr,
-                  category: topic.category,
-                  name: topic.name
-                })
+              await supabase.from('topics').insert({
+                id,
+                user_id: session.user.id,
+                date_str: dateStr,
+                category: topic.category,
+                name: topic.name
               });
             } catch (err) {
-              console.error('Error saving topic to Express API:', err);
+              console.error('Error saving topic to Supabase:', err);
             }
           }
         });
@@ -646,18 +640,13 @@ export const useGrowthStore = create<GrowthStore>()(
           };
         });
 
-        // Async write to Express backend
+        // Async write to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
+          if (session?.user) {
             try {
-              await fetch(`http://localhost:5001/api/topics/${topicId}`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Bearer ${session.access_token}`
-                }
-              });
+              await supabase.from('topics').delete().eq('id', topicId).eq('user_id', session.user.id);
             } catch (err) {
-              console.error('Error deleting topic in Express API:', err);
+              console.error('Error deleting topic in Supabase:', err);
             }
           }
         });
@@ -704,24 +693,19 @@ export const useGrowthStore = create<GrowthStore>()(
           reminders: [...state.reminders, { id, time, category, enabled: true }]
         }));
 
-        // Async write to Express backend
+        // Async write to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
+          if (session?.user) {
             try {
-              await fetch('http://localhost:5001/api/reminders', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                  id,
-                  time,
-                  category
-                })
+              await supabase.from('reminders').insert({
+                id,
+                user_id: session.user.id,
+                time,
+                category,
+                enabled: true
               });
             } catch (err) {
-              console.error('Error saving reminder to Express API:', err);
+              console.error('Error saving reminder to Supabase:', err);
             }
           }
         });
@@ -739,20 +723,13 @@ export const useGrowthStore = create<GrowthStore>()(
           })
         }));
 
-        // Async write to Express backend
+        // Async write to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
+          if (session?.user) {
             try {
-              await fetch(`http://localhost:5001/api/reminders/${id}`, {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({ enabled: isEnabled })
-              });
+              await supabase.from('reminders').update({ enabled: isEnabled }).eq('id', id).eq('user_id', session.user.id);
             } catch (err) {
-              console.error('Error toggling reminder in Express API:', err);
+              console.error('Error toggling reminder in Supabase:', err);
             }
           }
         });
@@ -854,72 +831,53 @@ export const useGrowthStore = create<GrowthStore>()(
           };
         });
 
-        // Async bulk write to Express backend
+        // Async bulk write to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
-            const token = session.access_token;
-
+          if (session?.user) {
             
             // Insert tasks
             for (const t of tasksWithIds) {
               try {
-                await fetch('http://localhost:5001/api/tasks', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    id: t.id,
-                    date_str: dateStr,
-                    title: t.title,
-                    category: t.category,
-                    estimated_time: t.estimatedTime,
-                    priority: t.priority
-                  })
+                await supabase.from('tasks').insert({
+                  id: t.id,
+                  user_id: session.user.id,
+                  date_str: dateStr,
+                  title: t.title,
+                  category: t.category,
+                  estimated_time: t.estimatedTime,
+                  priority: t.priority,
+                  completed: false
                 });
               } catch (err) {
-                console.error('Error bulk importing tasks to Express API:', err);
+                console.error('Error bulk importing tasks to Supabase:', err);
               }
             }
 
             // Insert topics
             for (const tp of topicsWithIds) {
               try {
-                await fetch('http://localhost:5001/api/topics', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify({
-                    id: tp.id,
-                    date_str: dateStr,
-                    category: tp.category,
-                    name: tp.name
-                  })
+                await supabase.from('topics').insert({
+                  id: tp.id,
+                  user_id: session.user.id,
+                  date_str: dateStr,
+                  category: tp.category,
+                  name: tp.name
                 });
               } catch (err) {
-                console.error('Error bulk importing topics to Express API:', err);
+                console.error('Error bulk importing topics to Supabase:', err);
               }
             }
 
             // Update/upsert notes
             const currentDay = get().daysData[dateStr];
             try {
-              await fetch('http://localhost:5001/api/notes', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                  date_str: dateStr,
-                  notes: currentDay?.notes || ''
-                })
-              });
+              await supabase.from('days_notes').upsert({
+                user_id: session.user.id,
+                date_str: dateStr,
+                notes: currentDay?.notes || ''
+              }, { onConflict: 'user_id,date_str' });
             } catch (err) {
-              console.error('Error importing notes to Express API:', err);
+              console.error('Error importing notes to Supabase:', err);
             }
           }
         });
@@ -1029,24 +987,17 @@ export const useGrowthStore = create<GrowthStore>()(
           badges: updatedBadges
         });
 
-        // Async write profiles xp and streaks to Express backend
+        // Async write profiles xp and streaks to Supabase
         supabase.auth.getSession().then(async ({ data: { session } }) => {
-          if (session?.access_token) {
+          if (session?.user) {
             try {
-              await fetch('http://localhost:5001/api/profile', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify({
-                  xp: totalXp,
-                  current_streak: currentStreak,
-                  longest_streak: longestStreak
-                })
-              });
+              await supabase.from('profiles').update({
+                xp: totalXp,
+                current_streak: currentStreak,
+                longest_streak: longestStreak
+              }).eq('id', session.user.id);
             } catch (err) {
-              console.error('Error syncing profile metrics to Express API:', err);
+              console.error('Error syncing profile metrics to Supabase:', err);
             }
           }
         });
